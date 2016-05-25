@@ -16,7 +16,7 @@ classdef SsSlot < handle
             ssParseMagically(parser, obj, name, acceptedClass);
         end
         
-        function requireProperty(obj, name, varargin)
+        function obj = requireProperty(obj, name, varargin)
             parser = inputParser();
             parser.addRequired('name', @ischar);
             parser.addParameter('units', '', @ischar);
