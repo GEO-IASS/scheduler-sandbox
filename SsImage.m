@@ -1,5 +1,9 @@
-classdef SsFlatImage < SsEntity
-    % Computes an image over arbitrary x-y planar region and sampling.
+classdef SsImage < SsEntity
+    % Computes an image over arbitrary x-y sampling, cache the results.
+    
+    properties (SetAccess = protected)
+        wavelengths;
+    end
     
     properties (Access = private)
         sampleCache;
@@ -31,7 +35,7 @@ classdef SsFlatImage < SsEntity
             % all combinations of x and y in a grid arrangement
             [xGrid, yGrid] = meshgrid(x, y);
             imageSample = obj.sample(xGrid, yGrid, 'tag', tag);
-            imageGrid = reshape(imageSample, numel(y), numel(x));
+            imageGrid = reshape(imageSample, numel(y), numel(x), []);
         end
         
         function imageSample = checkCache(obj, tag)

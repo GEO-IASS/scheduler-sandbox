@@ -1,4 +1,4 @@
-classdef SsGaborPatch < SsFlatImage
+classdef SsGaborPatch < SsImage
     % Sample a Gabor patch in the infinite x-y plane.
     
     properties
@@ -20,6 +20,7 @@ classdef SsGaborPatch < SsFlatImage
             parser.addParameter('aspect', 1, @isnumeric);
             parser.addParameter('gain', 1, @isnumeric);
             ssParseMagically(parser, obj, varargin{:});
+            obj.wavelengths = nan;
         end
     end
     

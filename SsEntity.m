@@ -6,20 +6,30 @@ classdef SsEntity < handle
     end
     
     methods
+        function accepted = offerSlot(obj, name, offering)
+            [~, slot] = obj.findSlot(name);
+            if isempty(slot)
+                accepted = false;
+                return;
+            end
+            accepted = slot.offer(offering);
+        end
         
-        function slot = findSlot(obj, name)
+        function [object, slot] = findSlot(obj, name)
             isNamedSlot = strcmp(name, {obj.slots.name});
             if any(isNamedSlot)
                 slot = obj.slots(find(isNamedSlot, 1, 'first'));
+                object = slot.object;
             else
                 warning('Entity:noSuchSlot', ...
                     'Entity "%s" has no slot named "%s".', obj.name, name);
                 slot = [];
+                object = [];
             end
         end
     end
     
-    methods (Access = private)
+    methods (Access = protected)
         function declareSlot(obj, slot)
             if isempty(obj.slots)
                 obj.slots = slot;
