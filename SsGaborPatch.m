@@ -21,9 +21,11 @@ classdef SsGaborPatch < SsFlatImage
             parser.addParameter('gain', 1, @isnumeric);
             ssParseMagically(parser, obj, varargin{:});
         end
-        
-        function imageSample = sample(obj, x, y)
-            % Real part of Gabor filter
+    end
+    
+    methods (Access = protected)
+        function imageSample = computeSample(obj, x, y)
+            % Real part of Gabor a filter
             % https://en.wikipedia.org/wiki/Gabor_filter
             
             xPrime = x .* cos(obj.orientation) + y .* sin(obj.orientation);

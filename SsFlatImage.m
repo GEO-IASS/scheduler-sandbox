@@ -1,16 +1,75 @@
 classdef SsFlatImage < SsEntity
     % Computes an image over arbitrary x-y planar region and sampling.
     
-    methods (Abstract)
-        imageSample = sample(obj, x, y);
+    properties (Access = private)
+        sampleCache;
     end
     
     methods
-        function imageGrid = sampleGrid(obj, x, y)
-            % all combinations of x and y in a grid arrangement.
+        function imageSample = sample(obj, x, y, varargin)
+            parser = inputParser();
+            parser.addRequired('x', @isnumeric);
+            parser.addRequired('y', @isnumeric);
+            parser.addParameter('tag', '', @ischar);
+            ssParseMagically(parser, 'caller', x, y, varargin{:});
+            
+            % try to look up samples from cache
+            imageSample = obj.checkCache(tag);
+            if isempty(imageSample)
+                imageSample = obj.computeSample(x, y);
+                obj.cacheSample(imageSample, tag);
+            end
+        end
+        
+        function imageGrid = sampleGrid(obj, x, y, varargin)
+            parser = inputParser();
+            parser.addRequired('x', @isnumeric);
+            parser.addRequired('y', @isnumeric);
+            parser.addParameter('tag', '', @ischar);
+            ssParseMagically(parser, 'caller', x, y, varargin{:});
+            
+            % all combinations of x and y in a grid arrangement
             [xGrid, yGrid] = meshgrid(x, y);
-            imageSample = obj.sample(xGrid, yGrid);
+            imageSample = obj.sample(xGrid, yGrid, 'tag', tag);
             imageGrid = reshape(imageSample, numel(y), numel(x));
+        end
+        
+        function imageSample = checkCache(obj, tag)
+            parser = inputParser();
+            parser.addRequired('tag', @ischar);
+            ssParseMagically(parser, 'caller', tag);
+            
+            if isempty(obj.sampleCache)
+                obj.sampleCache = containers.Map( ...
+                    'KeyType', 'char', ...
+                    'ValueType', 'any');
+            end
+            
+            if obj.sampleCache.isKey(tag)
+                imageSample = obj.sampleCache(tag);
+            else
+                imageSample = [];
+            end
+        end
+        
+        function clearCache(obj)
+            if ~isempty(obj.sampleCache)
+                obj.sampleCache.remove(obj.sampleCache.keys);
+            end
+        end
+    end
+    
+    methods (Abstract, Access = protected)
+        % internally do computations
+        imageSample = computeSample(obj, x, y);
+    end
+    
+    methods (Access = private)
+        function cacheSample(obj, imageSample, tag)
+            if isempty(tag)
+                return;
+            end
+            obj.sampleCache(tag) = imageSample;
         end
     end
 end
