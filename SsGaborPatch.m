@@ -12,15 +12,14 @@ classdef SsGaborPatch < SsImage
     
     methods
         function obj = SsGaborPatch(varargin)
-            parser = inputParser();
+            parser = SsInputParser();
             parser.addParameter('frequency', 1, @isnumeric);
             parser.addParameter('orientation', 0, @isnumeric);
             parser.addParameter('phase', 0, @isnumeric);
             parser.addParameter('stddev', 1, @isnumeric);
             parser.addParameter('aspect', 1, @isnumeric);
             parser.addParameter('gain', 1, @isnumeric);
-            ssParseMagically(parser, obj, varargin{:});
-            obj.wavelengths = nan;
+            parser.parseMagically(obj, varargin{:});
         end
     end
     

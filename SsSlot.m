@@ -10,18 +10,18 @@ classdef SsSlot < handle
     
     methods
         function obj = SsSlot(name, acceptedClass)
-            parser = inputParser();
+            parser = SsInputParser();
             parser.addRequired('name', @ischar);
             parser.addRequired('acceptedClass', @ischar);
-            ssParseMagically(parser, obj, name, acceptedClass);
+            parser.parseMagically(obj, name, acceptedClass);
         end
         
         function obj = requireProperty(obj, name, varargin)
-            parser = inputParser();
+            parser = SsInputParser();
             parser.addRequired('name', @ischar);
             parser.addParameter('units', '', @ischar);
             parser.addParameter('validator', [], @(v) isempty(v) || isa(v, 'function_handle'));
-            requirement = ssParseMagically(parser, struct(), name, varargin{:});
+            requirement = parser.parseMagically(struct(), name, varargin{:});
             
             if isempty(obj.requiredProperties)
                 obj.requiredProperties = requirement;

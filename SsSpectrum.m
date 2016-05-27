@@ -10,12 +10,12 @@ classdef SsSpectrum < handle
     
     methods
         function obj = SsSpectrum(wavelengths, varargin)
-            parser = inputParser();
+            parser = SsInputParser();
             parser.addRequired('wavelengths', @isnumeric);
             parser.addParameter('magnitudes', [], @isnumeric);
             parser.addParameter('wavelengthUnits', 'nm', @ischar);
             parser.addParameter('magnitudeUnits', 'unitless', @ischar);
-            ssParseMagically(parser, obj, wavelengths, varargin{:});
+            parser.parseMagically(obj, wavelengths, varargin{:});
             
             if isempty(obj.magnitudes)
                 obj.magnitudes = ones(size(obj.wavelengths));
@@ -23,11 +23,11 @@ classdef SsSpectrum < handle
         end
         
         function newObj = resample(obj, newWavelengths, varargin)
-            parser = inputParser();
+            parser = SsInputParser();
             parser.addRequired('newWavelengths', @isnumeric);
             parser.addParameter('method', 'raw', @ischar);
             parser.addParameter('extend', 0, @isnumeric);
-            ssParseMagically(parser, 'caller', newWavelengths, varargin{:});
+            parser.parseMagically('caller', newWavelengths, varargin{:});
             
             if strcmp(method, 'spd')
                 newMagnitudes = SplineSpd(obj.wavelengths(:), obj.magnitudes(:), newWavelengths(:), extend);

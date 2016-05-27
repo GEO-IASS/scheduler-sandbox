@@ -60,5 +60,5 @@ for pp = 1:nPix
         'Color', color);
     names{2 * pp} = sprintf('%d tagged', pix(pp));
 end
-legend(gca(), names{:});
+legend(gca(), names{:}, 'Location', 'east');
 set(gca(), 'XTick', 1:nReps);

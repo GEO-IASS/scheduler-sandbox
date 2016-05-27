@@ -13,19 +13,19 @@ gabor = SsGaborPatch( ...
     'stddev', 2, ...
     'frequency', 0.5, ...
     'orientation', pi()/6, ...
-    'gain', 0.5);
+    'gain', 0.75);
 
 % use 3-plane spectra so we can treat them as rgb
 interpolated = SsTwoSpectrumImage( ...
     'lowSpectrum', SsSpectrum(1:3, 'magnitudes', [1 0 0]), ...
-    'highSpectrum', SsSpectrum(1:3, 'magnitudes', [0 1 1]));
-interpolated.offerSlot('weights', gabor)
+    'highSpectrum', SsSpectrum(1:3, 'magnitudes', [0 0 1]));
+interpolated.nested.offerSlot('weights', gabor);
 
 
 %% Plug the interpolated reflectance into a flat scene.
 scene = SsPlanarScene( ...
-    'illuminant', SsSpectrum(1:3, 'magnitudes', [.25 .5 .75]));
-scene.offerSlot('reflectance', interpolated);
+    'illuminant', SsSpectrum(1:3, 'magnitudes', [.5 .5 .5]));
+scene.nested.offerSlot('reflectance', interpolated);
 
 %% Get out a multispectral radiance image.
 x = linspace(-10, 10, 500);

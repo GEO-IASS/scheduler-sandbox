@@ -1,21 +1,17 @@
 classdef SsImage < SsEntity
     % Computes an image over arbitrary x-y sampling, cache the results.
     
-    properties (SetAccess = protected)
-        wavelengths;
-    end
-    
     properties (Access = private)
         sampleCache;
     end
     
     methods
         function imageSample = sample(obj, x, y, varargin)
-            parser = inputParser();
+            parser = SsInputParser();
             parser.addRequired('x', @isnumeric);
             parser.addRequired('y', @isnumeric);
             parser.addParameter('tag', '', @ischar);
-            ssParseMagically(parser, 'caller', x, y, varargin{:});
+            parser.parseMagically('caller', x, y, varargin{:});
             
             % try to look up samples from cache
             imageSample = obj.checkCache(tag);
@@ -26,11 +22,11 @@ classdef SsImage < SsEntity
         end
         
         function imageGrid = sampleGrid(obj, x, y, varargin)
-            parser = inputParser();
+            parser = SsInputParser();
             parser.addRequired('x', @isnumeric);
             parser.addRequired('y', @isnumeric);
             parser.addParameter('tag', '', @ischar);
-            ssParseMagically(parser, 'caller', x, y, varargin{:});
+            parser.parseMagically('caller', x, y, varargin{:});
             
             % all combinations of x and y in a grid arrangement
             [xGrid, yGrid] = meshgrid(x, y);
@@ -39,9 +35,9 @@ classdef SsImage < SsEntity
         end
         
         function imageSample = checkCache(obj, tag)
-            parser = inputParser();
+            parser = SsInputParser();
             parser.addRequired('tag', @ischar);
-            ssParseMagically(parser, 'caller', tag);
+            parser.parseMagically('caller', tag);
             
             if isempty(obj.sampleCache)
                 obj.sampleCache = containers.Map( ...
@@ -60,7 +56,7 @@ classdef SsImage < SsEntity
             if ~isempty(obj.sampleCache)
                 obj.sampleCache.remove(obj.sampleCache.keys);
             end
-        end
+        end        
     end
     
     methods (Abstract, Access = protected)

@@ -11,24 +11,23 @@ classdef SsPlanarScene < SsImage
     
     methods
         function obj = SsPlanarScene(varargin)
-            parser = inputParser();
+            parser = SsInputParser();
             parser.addParameter('width', 1, @isnumeric);
             parser.addParameter('height', 1, @isnumeric);
             parser.addParameter('pixelWidth', 640, @isnumeric);
             parser.addParameter('pixelheight', 480, @isnumeric);
             parser.addParameter('illuminant', SsSpectrum(400:10:700), @(s) isa(s, 'SsSpectrum'));
-            ssParseMagically(parser, obj, varargin{:});
+            parser.parseMagically(obj, varargin{:});
             
-            obj.wavelengths = obj.illuminant.wavelengths;
-            
-            obj.declareSlot(SsSlot('reflectance', 'SsImage'));
+            obj.nested.declareSlot(SsSlot('reflectance', 'SsImage') ...
+                .requireProperty('wavelengths'));
         end
     end
     
     methods (Access = protected)
         function imageSample = computeSample(obj, x, y)
             % get reflectance image from slot
-            reflectance = obj.findSlot('reflectance');
+            reflectance = obj.nested.findSlot('reflectance');
             if isempty(reflectance)
                 imageSample = [];
                 return;
@@ -40,7 +39,7 @@ classdef SsPlanarScene < SsImage
                 reflectance.wavelengths, ...
                 'method', 'spd');
             
-            % multiplu illuminant across the reflectance image 
+            % multiplu illuminant across the reflectance image
             imageSample = reflectanceSample ...
                 .* repmat(illum.magnitudes(:)', numel(x), 1);
         end
