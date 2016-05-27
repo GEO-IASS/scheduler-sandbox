@@ -3,17 +3,23 @@ classdef SsSlot < handle
     
     properties
         name;
-        acceptedClass;
+        requiredClass;
         requiredProperties;
+        injectionTarget;
         object;
     end
     
     methods
-        function obj = SsSlot(name, acceptedClass)
+        function obj = SsSlot(name)
             parser = SsInputParser();
             parser.addRequired('name', @ischar);
-            parser.addRequired('acceptedClass', @ischar);
-            parser.parseMagically(obj, name, acceptedClass);
+            parser.parseMagically(obj, name);
+        end
+        
+        function obj = requireClass(obj, requiredClass)
+            parser = SsInputParser();
+            parser.addRequired('requiredClass', @ischar);
+            parser.parseMagically(obj, requiredClass);
         end
         
         function obj = requireProperty(obj, name, varargin)
@@ -30,6 +36,12 @@ classdef SsSlot < handle
             end
         end
         
+        function obj = injectAs(obj, injectionTarget)
+            parser = SsInputParser();
+            parser.addRequired('injectionTarget', @ischar);
+            parser.parseMagically(obj, injectionTarget);
+        end
+        
         function accepted = offer(obj, offering)
             accepted = obj.validateOffering(offering);
             if accepted
@@ -42,10 +54,10 @@ classdef SsSlot < handle
         function accepted = validateOffering(obj, offering)
             accepted = false;
             
-            if ~isa(offering, obj.acceptedClass)
+            if ~isa(offering, obj.requiredClass)
                 warning('Slot:incorrectClass', ...
                     'Offering has class "%s: but should be "%s".', ...
-                    class(offering), obj.acceptedClass);
+                    class(offering), obj.requiredClass);
             end
             
             nRequirements = numel(obj.requiredProperties);

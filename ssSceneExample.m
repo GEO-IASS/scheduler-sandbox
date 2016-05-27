@@ -7,9 +7,11 @@
 
 clear
 clc
+close all
 
 %% Use a Gabor patch to interpolate between two spectra.
 gabor = SsGaborPatch( ...
+    'phase', 0, ...
     'stddev', 2, ...
     'frequency', 0.5, ...
     'orientation', pi()/6, ...
@@ -27,9 +29,64 @@ scene = SsPlanarScene( ...
     'illuminant', SsSpectrum(1:3, 'magnitudes', [.5 .5 .5]));
 scene.nested.offerSlot('reflectance', interpolated);
 
+
 %% Get out a multispectral radiance image.
-x = linspace(-10, 10, 500);
-radiance = scene.sampleGrid(x, x);
+radiance = scene.sampleWholeScene();
+
 
 %% View the radiance image as rgb.
-imshow(radiance, []);
+figure()
+imshow(radiance, [0 1]);
+hold on
+targetLine = line(0, 0, ...
+    'Marker', '+', ...
+    'MarkerSize', 10, ...
+    'Color', [0 1 0]);
+boxLine = line(0, 0, ...
+    'LineStyle', '-', ...
+    'LineWidth', 3, ...
+    'Color', [0 1 0]);
+hold off
+
+
+%% Compute some random Gazes.
+gazePicker = SsRandomGazePicker();
+gazePicker.entities.offerSlot('scene', scene);
+
+gazePatch = SsStream();
+gazePicker.outputs.offerSlot('gazePatch', gazePatch);
+gazeTarget = SsStream();
+gazePicker.outputs.offerSlot('gazeTarget', gazeTarget);
+gazeBox = SsStream();
+gazePicker.outputs.offerSlot('gazeBox', gazeBox);
+
+% For viewing purposes, make simulation time ~= wall time
+duration = 5;
+tic();
+previousTime = 0;
+currentTime = 0;
+
+figure();
+while currentTime < duration
+    % let the computation update itself
+    nextTime = gazePicker.update(currentTime, previousTime);
+    
+    % where are we looking?
+    target = gazeTarget.currentValue();
+    set(targetLine, ...
+        'XData', target(1) * size(radiance, 2), ...
+        'YData', target(2) * size(radiance, 1));
+    box = gazeBox.currentValue();
+    set(boxLine, ...
+        'XData', box([1 1 2 2 1]) * size(radiance, 2), ...
+        'YData', box([3 4 4 3 3]) * size(radiance, 1));
+    
+    % what are we looking at?
+    patch = gazePatch.currentValue();
+    imshow(patch, [0 1]);
+    
+    % wait wall time approx the same as the simulation time
+    pause(nextTime - currentTime);
+    previousTime = currentTime;
+    currentTime = nextTime;
+end

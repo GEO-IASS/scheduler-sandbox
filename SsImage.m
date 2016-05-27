@@ -14,7 +14,7 @@ classdef SsImage < SsEntity
             parser.parseMagically('caller', x, y, varargin{:});
             
             % try to look up samples from cache
-            imageSample = obj.checkCache(tag);
+            imageSample = obj.getCached(tag);
             if isempty(imageSample)
                 imageSample = obj.computeSample(x, y);
                 obj.cacheSample(imageSample, tag);
@@ -34,7 +34,7 @@ classdef SsImage < SsEntity
             imageGrid = reshape(imageSample, numel(y), numel(x), []);
         end
         
-        function imageSample = checkCache(obj, tag)
+        function imageSample = getCached(obj, tag)
             parser = SsInputParser();
             parser.addRequired('tag', @ischar);
             parser.parseMagically('caller', tag);

@@ -15,12 +15,39 @@ classdef SsPlanarScene < SsImage
             parser.addParameter('width', 1, @isnumeric);
             parser.addParameter('height', 1, @isnumeric);
             parser.addParameter('pixelWidth', 640, @isnumeric);
-            parser.addParameter('pixelheight', 480, @isnumeric);
+            parser.addParameter('pixelHeight', 480, @isnumeric);
             parser.addParameter('illuminant', SsSpectrum(400:10:700), @(s) isa(s, 'SsSpectrum'));
             parser.parseMagically(obj, varargin{:});
             
-            obj.nested.declareSlot(SsSlot('reflectance', 'SsImage') ...
+            obj.nested.declareSlot(SsSlot('reflectance') ...
+                .requireClass('SsImage') ...
                 .requireProperty('wavelengths'));
+        end
+        
+        function imageSample = sampleWholeScene(obj)
+            % look up or compute the whole scene image
+            x = linspace(0, obj.width, obj.pixelWidth);
+            y = linspace(0, obj.height, obj.pixelHeight);
+            imageSample = obj.sampleGrid(x, y, 'tag', 'whole-scene');
+        end
+        
+        function imageSample = sampleRegion(obj, left, right, top, bottom)
+            wholeScene = obj.sampleWholeScene();
+            
+            % clip requested region to scene bounds
+            left = max(left, 0);
+            right = min(right, obj.width - eps(obj.width));
+            top = max(top, 0);
+            bottom = min(bottom, obj.height - eps(obj.height));
+            
+            % convert requested region to pixels
+            leftPixel = 1 + floor(obj.pixelWidth * left / obj.width);
+            rightPixel = 1 + floor(obj.pixelWidth * right / obj.width);
+            topPixel = 1 + floor(obj.pixelHeight * top / obj.height);
+            bottomPixel = 1 + floor(obj.pixelHeight * bottom / obj.height);
+            
+            % sample the whole sceneImage
+            imageSample = wholeScene(topPixel:bottomPixel, leftPixel:rightPixel, :);
         end
     end
     

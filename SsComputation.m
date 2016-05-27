@@ -15,7 +15,7 @@ classdef SsComputation < handle
         end
     end
     
-    methods (Abstract, Access = protected)
-        [nextTime, independenceTime] = update(currentTime, previousTime);
+    methods (Abstract)
+        [nextTime, independenceTime] = update(obj, currentTime, previousTime);
     end
 end

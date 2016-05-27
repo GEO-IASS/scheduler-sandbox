@@ -23,7 +23,7 @@ classdef SsTwoSpectrumImage < SsImage
             obj.highSpectrum = obj.highSpectrum.resample(obj.wavelengths);
             
             % need a nested flat image of weights
-            obj.nested.declareSlot(SsSlot('weights', 'SsImage'));
+            obj.nested.declareSlot(SsSlot('weights').requireClass('SsImage'));
         end
     end
     
