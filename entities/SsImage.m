@@ -56,12 +56,7 @@ classdef SsImage < SsEntity
             if ~isempty(obj.sampleCache)
                 obj.sampleCache.remove(obj.sampleCache.keys);
             end
-        end        
-    end
-    
-    methods (Abstract, Access = protected)
-        % internally do computations
-        imageSample = computeSample(obj, x, y);
+        end
     end
     
     methods (Access = private)
@@ -71,5 +66,10 @@ classdef SsImage < SsEntity
             end
             obj.sampleCache(tag) = imageSample;
         end
+    end
+    
+    methods (Abstract, Access = protected)
+        % internally do computations
+        imageSample = computeSample(obj, x, y);
     end
 end

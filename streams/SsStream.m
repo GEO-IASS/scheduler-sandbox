@@ -4,10 +4,17 @@ classdef SsStream < handle
     %   data dumped out of a computation.
     
     properties
+        name;
         sampleHistory;
     end
     
     methods
+        function obj = SsStream(varargin)
+            parser = SsInputParser();
+            parser.addParameter('name', '', @ischar);
+            parser.parseMagically(obj, varargin{:});
+        end
+        
         function putSample(obj, value, time)
             sample = SsStream.makeSample(value, time);
             if isempty(obj.sampleHistory)

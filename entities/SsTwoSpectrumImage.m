@@ -1,4 +1,4 @@
-classdef SsTwoSpectrumImage < SsImage
+classdef SsTwoSpectrumImage < SsImage & SsSlotTarget
     % Use a flat image to interpolate bewteen two spectra.
     
     properties
@@ -7,6 +7,9 @@ classdef SsTwoSpectrumImage < SsImage
         lowSpectrum;
         highSpectrum;
         wavelengths;
+        
+        % slotted
+        weights;
     end
     
     methods
@@ -21,21 +24,21 @@ classdef SsTwoSpectrumImage < SsImage
             % get low and high spectra in the same sampling
             obj.wavelengths = obj.lowSpectrum.wavelengths;
             obj.highSpectrum = obj.highSpectrum.resample(obj.wavelengths);
-            
+        end
+        
+        function slots = declareSlots(obj)
             % need a nested flat image of weights
-            obj.nested.declareSlot(SsSlot('weights').requireClass('SsImage'));
+            slots = SsSlot() ...
+                .assignAs('weights') ...
+                .requireClass('SsImage') ...
+                .preferProperty('name', 'value', 'weights');
         end
     end
     
     methods (Access = protected)
         function imageSample = computeSample(obj, x, y)
             % convert slotted image to interpolation weights
-            weights = obj.nested.findSlot('weights');
-            if isempty(weights)
-                imageSample = [];
-                return;
-            end
-            weightSample = weights.computeSample(x, y);
+            weightSample = obj.weights.computeSample(x, y);
             spectrumWeights = (weightSample - obj.low) ./ (obj.high - obj.low);
             
             % weighted sum of spectra -> spectral image sample

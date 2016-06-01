@@ -1,13 +1,13 @@
 %% Sanity check for the benefit of caching in SsFlatImage.
 %
-% SsFlatImage can cache computed images, as long as you pass in a 'tag'
+% SsImage can cache computed images, as long as you pass in a 'tag'
 % parameter to label the cached result.  This should speed things up when
-% computing or loading large images.
+% computing or loading large images repeatedly.
 %
 % It would be possible to use the x-y sampling as the tag and cache things
 % automatically.  But computing the hash for a large set of x-y values
 % could take as much time as computing the image!  Using human-readable
-% tags is easier and faster.
+% tags is simpler.
 %
 % 2016 isetbio team
 
