@@ -72,7 +72,7 @@ classdef SsGazePlotter < SsComputation & SsSlotTarget
                 'YData', boxY([1 2 2 1 1]));
             
             % use a constant sampling time
-            nextTime = currentTime + 1;
+            nextTime = currentTime + .1;
             
             % always OK to run this in parallel
             independenceTime = 0;

@@ -60,28 +60,14 @@ patchPlotter = SsPatchPlotter();
 context.add(patchPlotter);
 
 
+%% Scheduler to wangle computation updates.
+scheduler = SsTicTocScheduler();
+context.add(scheduler);
+
+
 %% Let the context wire up our objects automatically.
 context.plugInSlots();
 
 
 %% Simulate some random gazes.
-
-% for viewing purposes, make simulation time <--> wall time
-duration = 5;
-tic();
-previousTime = 0;
-currentTime = 0;
-
-while currentTime < duration
-    % let the computation update itself
-    nextTime = gazePicker.update(currentTime, previousTime);
-    
-    % for now, let plotters ride along without real scheduling
-    gazePlotter.update(currentTime, previousTime);
-    patchPlotter.update(currentTime, previousTime);
-    
-    % wait wall time approx the same as the simulation time
-    pause(nextTime - currentTime);
-    previousTime = currentTime;
-    currentTime = nextTime;
-end
+scheduler.run(5);

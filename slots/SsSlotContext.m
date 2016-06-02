@@ -130,8 +130,20 @@ classdef SsSlotContext < handle
                     end
                     bestOffering = obj.offerings{bestIndex};
                     
+                    % best offering to target property
                     isAssigned = obj.assignTargetProperty(target, slot.assignmentTarget, bestOffering);
-                    isPassed = obj.invokeTargetMethod(target, slot.invocationTarget, bestOffering);
+                    
+                    % best or all offerings to target method
+                    if slot.isTakeAll
+                        isPassed = false;
+                        for ff = find(scores > 0)
+                            offering = obj.offerings{ff};
+                            isPassed = isPassed | obj.invokeTargetMethod(target, slot.invocationTarget, offering);
+                        end
+                    else
+                        isPassed = obj.invokeTargetMethod(target, slot.invocationTarget, bestOffering);
+                    end
+                    
                     if ~isAssigned && ~isPassed
                         warning('SlotContext:unusedSlot', ...
                             'Slot Target "%s" has no property "%s" or method "%s".', ...

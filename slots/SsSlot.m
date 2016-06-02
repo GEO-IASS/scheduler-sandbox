@@ -7,6 +7,7 @@ classdef SsSlot < handle
         requiredClass;
         requiredProperties;
         preferredProperties;
+        isTakeAll = false;
         isAutocreate = false;
     end
     
@@ -61,6 +62,12 @@ classdef SsSlot < handle
             parser = SsInputParser();
             parser.addRequired('isAutocreate', @islogical);
             parser.parseMagically(obj, isAutocreate);
+        end
+        
+        function obj = takeAll(obj, isTakeAll)
+            parser = SsInputParser();
+            parser.addRequired('isTakeAll', @islogical);
+            parser.parseMagically(obj, isTakeAll);
         end
         
         function [score, message] = evaluateOffering(obj, offering)

@@ -39,7 +39,7 @@ classdef SsPatchPlotter < SsComputation & SsSlotTarget
             imshow(patch, [0 1], 'Parent', obj.ax);
             
             % use a constant sampling time
-            nextTime = currentTime + 1;
+            nextTime = currentTime + .1;
             
             % always OK to run this in parallel
             independenceTime = 0;
