@@ -4,14 +4,13 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
     % a constant speed.  This is a silly example and not sciencey.
     
     properties
-        distance;
-        fieldOfView;
         speed;
         updateInterval;
         targetChangeInteval;
         
         % slotted
         scene;
+        pointOfView;
         gazePatch;
         gazeTarget;
         gazeBox;
@@ -28,8 +27,6 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
     methods
         function obj = SsRandomGazePicker(varargin)
             parser = SsInputParser();
-            parser.addParameter('distance', 1, @isnumeric);
-            parser.addParameter('fieldOfView', pi()/24, @isnumeric);
             parser.addParameter('speed', 1, @isnumeric);
             parser.addParameter('updateInterval', 0.1, @isnumeric);
             parser.addParameter('targetChangeInteval', 2, @isnumeric);
@@ -42,14 +39,17 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
                 .assignAs('scene') ...
                 .requireClass('SsPlanarScene');
             slots(2) = SsSlot() ...
+                .assignAs('pointOfView') ...
+                .requireClass('SsPointOfView');
+            slots(3) = SsSlot() ...
                 .assignAs('gazePatch') ...
                 .requireClass('SsStream') ...
                 .preferProperty('name', 'value', 'gazePatch');
-            slots(3) = SsSlot() ...
+            slots(4) = SsSlot() ...
                 .assignAs('gazeTarget') ...
                 .requireClass('SsStream') ...
                 .preferProperty('name', 'value', 'gazeTarget');
-            slots(4) = SsSlot() ...
+            slots(5) = SsSlot() ...
                 .assignAs('gazeBox') ...
                 .requireClass('SsStream') ...
                 .preferProperty('name', 'value', 'gazeBox');
@@ -67,7 +67,7 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
                 % when to move the target next?
                 obj.nextChangeTime = currentTime + obj.targetChangeInteval * 2 * rand();
             end
-                        
+            
             % zero in on the current gaze target
             stepSize = obj.speed * (currentTime - previousTime);
             diffX = obj.targetX - obj.gazeX;
@@ -80,7 +80,7 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
             
             % choose square region in field of view
             % tan(theta) = opp / adj -> adj * tan(theta) = opp
-            apothem = obj.distance * tan(obj.fieldOfView / 2);
+            apothem = obj.pointOfView.distance * tan(obj.pointOfView.fieldOfView / 2);
             left = obj.gazeX - apothem;
             right = obj.gazeX + apothem;
             top = obj.gazeY - apothem;

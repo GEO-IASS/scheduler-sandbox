@@ -40,7 +40,13 @@ classdef SsSlotContext < handle
                     % sanity check to avoid work
                     if ~isprop(target, slot.assignmentTarget)
                         warning('SlotContext:noSuchTargetSlot', ...
-                            'Slot Target has no property "%s".', slot.assignmentTarget);
+                            'Slot Target of class "%s" has no property "%s".', ...
+                            class(target), slot.assignmentTarget);
+                        continue;
+                    end
+                    
+                    % don't clobber pervious assignment
+                    if ~isempty(target.(slot.assignmentTarget))
                         continue;
                     end
                     
@@ -60,6 +66,9 @@ classdef SsSlotContext < handle
                     bestOffering = obj.offerings{bestIndex};
                     target.(slot.assignmentTarget) = bestOffering;
                 end
+                
+                % invoke the target's lifecycle callback
+                target.afterSlotAssignments(slots);
             end
         end
     end
