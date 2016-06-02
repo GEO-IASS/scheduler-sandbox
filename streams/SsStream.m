@@ -5,6 +5,7 @@ classdef SsStream < handle
     
     properties
         name;
+        input;
         sampleHistory;
     end
     
@@ -13,6 +14,11 @@ classdef SsStream < handle
             parser = SsInputParser();
             parser.addParameter('name', '', @ischar);
             parser.parseMagically(obj, varargin{:});
+        end
+        
+        function oldValue = setInput(obj, input)
+            oldValue = obj.input;
+            obj.input = input;
         end
         
         function putSample(obj, value, time)

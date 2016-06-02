@@ -51,9 +51,6 @@ gazePicker = SsRandomGazePicker( ...
     'speed', 3, ...
     'targetChangeInteval', 1);
 context.add(gazePicker);
-context.add(SsStream('name', 'gazePatch'));
-context.add(SsStream('name', 'gazeTarget'));
-context.add(SsStream('name', 'gazeBox'));
 
 %% Downstream computations for plotting.
 gazePlotter = SsGazePlotter();

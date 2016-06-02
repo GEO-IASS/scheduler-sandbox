@@ -3,9 +3,11 @@ classdef SsSlot < handle
     
     properties
         assignmentTarget;
+        invocationTarget;
         requiredClass;
         requiredProperties;
         preferredProperties;
+        isAutocreate = false;
     end
     
     methods
@@ -13,6 +15,12 @@ classdef SsSlot < handle
             parser = SsInputParser();
             parser.addRequired('assignmentTarget', @ischar);
             parser.parseMagically(obj, assignmentTarget);
+        end
+        
+        function obj = passTo(obj, invocationTarget)
+            parser = SsInputParser();
+            parser.addRequired('invocationTarget', @ischar);
+            parser.parseMagically(obj, invocationTarget);
         end
         
         function obj = requireClass(obj, requiredClass)
@@ -49,6 +57,12 @@ classdef SsSlot < handle
             end
         end
         
+        function obj = autocreate(obj, isAutocreate)
+            parser = SsInputParser();
+            parser.addRequired('isAutocreate', @islogical);
+            parser.parseMagically(obj, isAutocreate);
+        end
+        
         function [score, message] = evaluateOffering(obj, offering)
             % Compare offering to requirements and preferences for a score:
             %   - not required class -> score = 0
@@ -60,7 +74,7 @@ classdef SsSlot < handle
             
             % not required class -> score = 0
             if ~isa(offering, obj.requiredClass)
-                message = sprintf('Offering has class "%s: but should be "%s".', ...
+                message = sprintf('Offering has class "%s" but should be "%s".', ...
                     class(offering), obj.requiredClass);
                 return;
             end
