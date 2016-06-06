@@ -38,6 +38,10 @@ classdef SsGazePlotter < SsComputation & SsSlotTarget
         end
         
         function afterSlotAssignments(obj, slots)
+            obj.initialize();
+        end
+        
+        function initialize(obj)
             % plot the scene image as background
             obj.fig = figure('Name', obj.title);
             radiance = obj.scene.sampleWholeScene();

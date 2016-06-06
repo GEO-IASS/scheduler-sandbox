@@ -144,20 +144,20 @@ classdef SsSlotContext < handle
                     bestOffering = obj.offerings{bestIndex};
                     
                     % best offering to target property
-                    isAssigned = obj.assignTargetProperty(target, slot.assignmentTarget, bestOffering);
+                    isAssigned = target.assignProperty(slot.assignmentTarget, bestOffering);
                     
                     % best or all offerings to target method
                     if slot.isTakeAll
-                        isPassed = false;
+                        isInvoked = false;
                         for ff = find(scores > 0)
                             offering = obj.offerings{ff};
-                            isPassed = isPassed | obj.invokeTargetMethod(target, slot.invocationTarget, offering);
+                            isInvoked = isInvoked | target.invokeMethod(slot.invocationTarget, offering);
                         end
                     else
-                        isPassed = obj.invokeTargetMethod(target, slot.invocationTarget, bestOffering);
+                        isInvoked = target.invokeMethod(slot.invocationTarget, bestOffering);
                     end
                     
-                    if ~isAssigned && ~isPassed
+                    if ~isAssigned && ~isInvoked
                         warning('SlotContext:unusedSlot', ...
                             'Slot Target "%s" has no property "%s" or method "%s".', ...
                             class(target), slot.assignmentTarget, slot.invocationTarget);
@@ -167,34 +167,6 @@ classdef SsSlotContext < handle
                 % invoke the target's lifecycle callback
                 target.afterSlotAssignments(slots);
             end
-        end
-        
-        function isAssigned = assignTargetProperty(obj, target, propertyName, offering)
-            if ~ischar(propertyName) || ~isprop(target, propertyName)
-                isAssigned = false;
-                return;
-            end
-            
-            % don't clobber pervious assignment
-            if ~isempty(target.(propertyName))
-                isAssigned = true;
-                return;
-            end
-            
-            % go ahead
-            target.(propertyName) = offering;
-            isAssigned = true;
-        end
-        
-        function isPassed = invokeTargetMethod(obj, target, methodName, offering)
-            if ~ischar(methodName) || ~ismethod(target, methodName)
-                isPassed = false;
-                return;
-            end
-            
-            % go ahead
-            feval(methodName, target, offering);
-            isPassed = true;
         end
     end
 end

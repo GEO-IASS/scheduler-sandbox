@@ -60,6 +60,10 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
         end
         
         function afterSlotAssignments(obj, slots)
+            obj.initialize();
+        end
+        
+        function initialize(obj)
             obj.gazePatch.setInput(obj);
             obj.gazeTarget.setInput(obj);
             obj.gazeBox.setInput(obj);

@@ -22,9 +22,21 @@ classdef SsScheduler < SsSlotTarget
         end
         
         function afterSlotAssignments(obj, slots)
+            obj.initialize();
+        end
+        
+        function initialize(obj)
             % init timestamp bookkeeping
             obj.nextTimes = zeros(1, numel(obj.computations));
             obj.previousTimes = zeros(1, numel(obj.computations));
+            obj.initializeComputations();
+        end
+        
+        function initializeComputations(obj)
+            nComputations = numel(obj.computations);
+            for oo = 1:nComputations
+                obj.computations{oo}.initialize();
+            end
         end
         
         function index = add(obj, computation)

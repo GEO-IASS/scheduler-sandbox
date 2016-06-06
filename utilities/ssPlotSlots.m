@@ -12,18 +12,22 @@ grapher = [];
 inputData = struct( ...
     'context', slotContext, ...
     'offering', slotContext.offerings, ...
-    'name', '', ...
+    'label', '', ...
+    'nodeName', '', ...
     'color', []);
 
 nOfferings = numel(inputData);
 for oo = 1:nOfferings
     offering = inputData(oo).offering;
     
-    % choose the node name
+    % unique node name
+    inputData(oo).nodeName = sprintf('%s%d', class(offering), oo);
+    
+    % informative label
     if isprop(offering, 'name') && ~isempty(offering.name)
-        inputData(oo).name = sprintf('%s %s', class(offering), offering.name);
+        inputData(oo).label = sprintf('%s %s', class(offering), offering.name);
     else
-        inputData(oo).name = sprintf('%s %d', class(offering), oo);
+        inputData(oo).label = sprintf('%s', class(offering));
     end
     
     % choose the node color
@@ -43,7 +47,6 @@ end
 %% Create an object grapher to draw the graph.
 grapher = SsDataGrapher();
 grapher.inputData = inputData;
-grapher.colors = cat(1, inputData.color);
 grapher.listedEdgeNames = true;
 grapher.floatingEdgeNames = false;
 grapher.graphVisAlgorithm = 'dot';

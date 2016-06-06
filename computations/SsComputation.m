@@ -8,4 +8,10 @@ classdef SsComputation < handle
     methods (Abstract)
         [nextTime, independenceTime] = update(obj, currentTime, previousTime);
     end
+    
+    methods
+        function initialize(obj)
+            % default is no-op, subclasses may override
+        end
+    end
 end

@@ -32,17 +32,18 @@ classdef SsDataGrapher < handle
         % string name for the graph
         graphName = 'dataGraph';
         
-        % function to generate graph node names
+        % function to generate graph node names and colors
         % Should take inputData and an index into inputData and return a
-        % string name for the indexth node.
-        nodeNameFunction = @DataGrapher.nodeNameFromField;
+        % string name for the indexth node, a unique nodeName for the same
+        % node, and a color for the same node.
+        nodeFunction = @SsDataGrapher.nodeFromField;
         
         % function to generate graph edges
         % Should take inputData and an index into inputData and return an
         % array of other indexes.  These specify edges from the given
         % indexth node to the returned indexth nodes.  Should also return
         % as a second output a cell array with a string name for each edge.
-        edgeFunction = @DataGrapher.edgeFromField;
+        edgeFunction = @SsDataGrapher.edgeFromField;
         
         % color in edges like target node (true) or source node (false)?
         edgeColorFromTarget = false;
@@ -100,23 +101,33 @@ classdef SsDataGrapher < handle
         end
         
         % Apply nodeNameFunction and edgeFunction to the inputData.
-        function nodes = parseNodes(self)
-            nodeNameFun = self.nodeNameFunction;
-            edgeFun = self.edgeFunction;
-            
-            data = self.inputData;
-            
+        function nodes = parseNodes(self)                        
             nNodes = numel(self.inputData);
             nodes = struct( ...
-                'name', '', ...
-                'var', '', ...
+                'label', '', ...
+                'nodeName', '', ...
+                'color', [], ...
                 'edges', cell(1, nNodes));
             for ii = 1:nNodes
-                nodeName = feval(nodeNameFun, data, ii);
-                nodes(ii).name = nodeName;
-                nodes(ii).var = nodeName(isstrprop(nodeName, 'alpha'));
+                [label, nodeName, color] = feval(self.nodeFunction, self.inputData, ii);
+                nodes(ii).label = label;
                 
-                [edgeTargets, edgeNames] = feval(edgeFun, data, ii);
+                if isempty(nodeName)
+                    nodes(ii).nodeName = label(isstrprop(label, 'alpha'));
+                    
+                else
+                    nodes(ii).nodeName = nodeName;
+                end
+                
+                if isempty(color)
+                    cc = 1 + mod(ii - 1, nColors);
+                    nodes(ii).color = self.composeRGB( ...
+                        self.colors(cc,:), self.nodeAlpha);
+                else
+                    nodes(ii).color = color;
+                end
+                
+                [edgeTargets, edgeNames] = feval(self.edgeFunction, self.inputData, ii);
                 for jj = 1:length(edgeTargets)
                     nodes(ii).edges(jj).target = edgeTargets(jj);
                     nodes(ii).edges(jj).name = edgeNames{jj};
@@ -127,7 +138,7 @@ classdef SsDataGrapher < handle
         
         % Write a string that contains a whole GraphVis specification.
         function string = composeGraph(self)
-            self.parseNodes;
+            self.parseNodes();
             
             if self.graphIsDirected
                 graphType = 'digraph';
@@ -167,30 +178,24 @@ classdef SsDataGrapher < handle
         
         % Write a string that specifies nodes.
         function string = composeNodes(self)
-            nColors = size(self.colors, 1);
             nNodes = numel(self.nodes);
             nodeStrings = cell(1, nNodes);
             for ii = 1:nNodes
                 node = self.nodes(ii);
                 
                 % skip nameless nodes
-                if isempty(node.name)
+                if isempty(node.label)
                     continue
                 end
-                
-                % choose node color
-                cc = 1 + mod(ii - 1, nColors);
-                nodeColor = self.composeRGB( ...
-                    self.colors(cc,:), self.nodeAlpha);
                 
                 if self.listedEdgeNames
                     % make an HTML-like table
                     tableStart = '<table border="0" cellborder="1" cellspacing="0">';
-                    tableRows = sprintf('<tr><td><b>%s</b></td></tr>', node.name);
+                    tableRows = sprintf('<tr><td><b>%s</b></td></tr>', node.label);
                     for jj = 1:length(node.edges)
                         edge = node.edges(jj);
                         targetNode = self.nodes(edge.target);
-                        if isempty(targetNode.name)
+                        if isempty(targetNode.label)
                             continue
                         end
                         row = sprintf('<tr><td port="%d">%s</td></tr>', ...
@@ -201,18 +206,18 @@ classdef SsDataGrapher < handle
                     html = [tableStart tableRows tableEnd];
                     nodeLabel = sprintf('<%s>', html);
                 else
-                    nodeLabel = sprintf('"%s"', node.name);
+                    nodeLabel = sprintf('"%s"', node.label);
                 end
                 
+                nodeColor = self.composeRGB(node.color, 1);
                 nodeStrings{ii} = sprintf('%s [label=%s color="%s"]', ...
-                    node.var, nodeLabel, nodeColor);
+                    node.nodeName, nodeLabel, nodeColor);
             end
             string = sprintf('%s\n', nodeStrings{:});
         end
         
         % Write a string that specifies edges.
         function string = composeEdges(self)
-            nColors = size(self.colors, 1);
             if self.graphIsDirected
                 edgeType = '->';
             else
@@ -229,18 +234,14 @@ classdef SsDataGrapher < handle
                     
                     % choose edge color from this node or the target
                     if self.edgeColorFromTarget
-                        cc = edge.target;
+                        color = targetNode.color;
                     else
-                        cc = ii;
+                        color = node.color;
                     end
-                    cc = 1 + mod(cc - 1, nColors);
-                    edgeColor = self.composeRGB( ...
-                        self.colors(cc,:), self.edgeAlpha);
-                    edgeFontColor = self.composeRGB( ...
-                        self.colors(cc,:), 1);
+                    edgeColor = self.composeRGB(color, 1);
                     
                     % skip nameless target nodes
-                    if isempty(node.name) || isempty(targetNode.name)
+                    if isempty(node.label) || isempty(targetNode.label)
                         continue
                     end
                     
@@ -251,14 +252,14 @@ classdef SsDataGrapher < handle
                     end
                     
                     if self.listedEdgeNames
-                        source = sprintf('%s:%d', node.var, jj);
+                        source = sprintf('%s:%d', node.nodeName, jj);
                     else
-                        source = sprintf('%s', node.var);
+                        source = sprintf('%s', node.nodeName);
                     end
                     edgeString{end+1} = ...
                         sprintf('%s%s%s [label="%s" color="%s" fontcolor="%s"]', ...
-                        source, edgeType, targetNode.var, ...
-                        edgeLabel, edgeColor, edgeFontColor);
+                        source, edgeType, targetNode.nodeName, ...
+                        edgeLabel, edgeColor, edgeColor);
                 end
             end
             string = sprintf('%s\n', edgeString{:});
@@ -335,8 +336,10 @@ classdef SsDataGrapher < handle
     
     methods (Static)
         % Default node names from the "name" field.
-        function nodeName = nodeNameFromField(inputData, index)
-            nodeName = inputData(index).name;
+        function [label, nodeName, color] = nodeFromField(inputData, index)
+            label = inputData(index).label;
+            nodeName = inputData(index).nodeName;
+            color = inputData(index).color;
         end
         
         % Default edges from "edge" field, and trivial edge names.
