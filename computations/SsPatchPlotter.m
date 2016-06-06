@@ -38,15 +38,11 @@ classdef SsPatchPlotter < SsComputation & SsSlotTarget
         end
         
         function [nextTime, independenceTime] = update(obj, currentTime, previousTime)
+            [nextTime, independenceTime] = obj.update@SsComputation(currentTime, previousTime);
+            
             % reposition the gaze target marker
             patch = obj.gazePatch.currentValue();
             imshow(patch, [0 1], 'Parent', obj.ax);
-            
-            % use a constant sampling time
-            nextTime = currentTime + .1;
-            
-            % always OK to run this in parallel
-            independenceTime = 0;
         end
     end
 end

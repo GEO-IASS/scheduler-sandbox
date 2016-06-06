@@ -2,6 +2,8 @@ classdef SsSlotContext < handle
     % Hold simulation objects, wire them together.  Distribute them?
     
     % TODO: factor out code for visiting objects that have slots?
+    % TODO: compute big matrix of scores for all offerings and slots, once,
+    % instead of repeating nested loops in various methods.
     
     properties
         offerings = {};
@@ -21,7 +23,7 @@ classdef SsSlotContext < handle
         function index = indexOf(obj, offering)
             index = [];
             if isempty(offering)
-                returnl
+                return;
             end
             
             nOfferings = numel(obj.offerings);
@@ -35,8 +37,13 @@ classdef SsSlotContext < handle
         end
         
         function plugInSlots(obj)
-            obj.autocreateForSlots;
-            obj.makeOfferingsToSlots;
+            % Do all autocreating before making any offerings,
+            % that way order of offering won't matter.
+            % If we autocreated lazily while making offerings,
+            % an early offering might fail even though a suitable object
+            % would have been autocreated later.
+            obj.autocreateForSlots();
+            obj.makeOfferingsToSlots();
         end
     end
     
@@ -58,6 +65,25 @@ classdef SsSlotContext < handle
                 for ss = 1:nSlots
                     slot = slots(ss);
                     if ~slot.isAutocreate
+                        continue;
+                    end
+                    
+                    % don't create if a suitable object already exists
+                    %   "Suitable" means required *and preferred*
+                    %   properties are matched.
+                    mayCreate = true;
+                    suitableScore = 1 + numel(slot.preferredProperties);
+                    for ff = 1:nOfferings
+                        offering = obj.offerings{ff};
+                        score = slot.evaluateOffering(offering);
+                        if score >= suitableScore
+                            % found a match already
+                            mayCreate = false;
+                            break;
+                        end
+                    end
+                    
+                    if ~mayCreate
                         continue;
                     end
                     

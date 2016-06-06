@@ -5,7 +5,6 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
     
     properties
         speed;
-        updateInterval;
         targetChangeInteval;
         
         % slotted
@@ -17,11 +16,11 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
     end
     
     properties (Access = private)
-        nextChangeTime = 0;
-        gazeX = 0.5;
-        gazeY = 0.5;
-        targetX = 0;
-        targetY = 0;
+        nextChangeTime;
+        gazeX;
+        gazeY;
+        targetX;
+        targetY;
     end
     
     methods
@@ -40,8 +39,7 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
                 .requireClass('SsPlanarScene');
             slots(2) = SsSlot() ...
                 .assignAs('pointOfView') ...
-                .requireClass('SsPointOfView') ...
-                .autocreate(true);
+                .requireClass('SsPointOfView');
             slots(3) = SsSlot() ...
                 .assignAs('gazePatch') ...
                 .requireClass('SsStream') ...
@@ -67,9 +65,17 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
             obj.gazePatch.setInput(obj);
             obj.gazeTarget.setInput(obj);
             obj.gazeBox.setInput(obj);
+            
+            obj.nextChangeTime = 0;
+            obj.gazeX = 0.5;
+            obj.gazeY = 0.5;
+            obj.targetX = 0;
+            obj.targetY = 0;
         end
         
         function [nextTime, independenceTime] = update(obj, currentTime, previousTime)
+            [nextTime, independenceTime] = obj.update@SsComputation(currentTime, previousTime);
+            
             % change the gazeTarget?
             if currentTime >= obj.nextChangeTime
                 % uniform-random new gaze target
@@ -104,12 +110,6 @@ classdef SsRandomGazePicker < SsComputation & SsSlotTarget
             % ask the scene for the chosen region, clipped to bounds
             patch = obj.scene.sampleRegion(left, right, top, bottom);
             obj.gazePatch.putSample(patch, currentTime);
-            
-            % use a constant sampling time
-            nextTime = currentTime + obj.updateInterval;
-            
-            % always OK to run this in parallel
-            independenceTime = 0;
         end
     end
 end

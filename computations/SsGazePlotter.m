@@ -61,6 +61,8 @@ classdef SsGazePlotter < SsComputation & SsSlotTarget
         end
         
         function [nextTime, independenceTime] = update(obj, currentTime, previousTime)
+            [nextTime, independenceTime] = obj.update@SsComputation(currentTime, previousTime);
+            
             % reposition the gaze target marker
             target = obj.gazeTarget.currentValue();
             [targetX, targetY] = obj.scene.sceneToPixels(target(1), target(2));
@@ -74,12 +76,6 @@ classdef SsGazePlotter < SsComputation & SsSlotTarget
             set(obj.boxLine, ...
                 'XData', boxX([1 1 2 2 1]), ...
                 'YData', boxY([1 2 2 1 1]));
-            
-            % use a constant sampling time
-            nextTime = currentTime + .1;
-            
-            % always OK to run this in parallel
-            independenceTime = 0;
         end
     end
 end

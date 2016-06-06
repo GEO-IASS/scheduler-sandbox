@@ -29,7 +29,6 @@ classdef SsScheduler < SsSlotTarget
             % init timestamp bookkeeping
             obj.nextTimes = zeros(1, numel(obj.computations));
             obj.previousTimes = zeros(1, numel(obj.computations));
-            obj.initializeComputations();
         end
         
         function initializeComputations(obj)

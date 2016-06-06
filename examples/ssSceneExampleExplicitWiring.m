@@ -68,17 +68,14 @@ gazePlotter.offer(scene);
 gazePlotter.offer(gazeTarget, 'assignmentTarget', 'gazeTarget');
 gazePlotter.offer(gazeBox, 'assignmentTarget', 'gazeBox');
 
-patchPlotter = SsPatchPlotter();
-patchPlotter.offer(gazePatch, 'assignmentTarget', 'gazePatch');
-
 %% Scheduler to wangle computation updates.
 scheduler = SsTicTocScheduler();
 scheduler.add(gazePicker);
 scheduler.add(gazePlotter);
-scheduler.add(patchPlotter);
 
 %% Simulate some random gazes.
 scheduler.initialize();
+scheduler.initializeComputations();
 scheduler.run(5);
 
 %% Make a plot of our "wiring".
@@ -94,7 +91,6 @@ context.add(gazePatch);
 context.add(gazeTarget);
 context.add(gazeBox);
 context.add(gazePlotter);
-context.add(patchPlotter);
 context.add(scheduler);
 
 % let the container draw a diagram
