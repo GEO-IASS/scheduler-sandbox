@@ -68,6 +68,8 @@ context.add(scheduler);
 %% Let the context wire up our objects automatically.
 context.plugInSlots();
 
+% what happened?
+ssPlotSlots(context);
 
 %% Simulate some random gazes.
-scheduler.run(5);
+%scheduler.run(5);

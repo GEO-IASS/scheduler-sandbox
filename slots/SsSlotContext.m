@@ -1,7 +1,7 @@
 classdef SsSlotContext < handle
     % Hold simulation objects, wire them together.  Distribute them?
     
-    % TODO: factor out code for visiting objects that have slots
+    % TODO: factor out code for visiting objects that have slots?
     
     properties
         offerings = {};
@@ -10,15 +10,28 @@ classdef SsSlotContext < handle
     methods
         function index = add(obj, offering)
             nOfferings = numel(obj.offerings);
+            index = obj.indexOf(offering);
+            if isempty(index)
+                % only add if this is a new offering
+                index = nOfferings + 1;
+                obj.offerings{index} = offering;
+            end
+        end
+        
+        function index = indexOf(obj, offering)
+            index = [];
+            if isempty(offering)
+                returnl
+            end
+            
+            nOfferings = numel(obj.offerings);
             for oo = 1:nOfferings
-                % only add a given object once, by handle identity
+                % compare by handle identity, not value
                 if obj.offerings{oo} == offering
                     index = oo;
                     return;
                 end
             end
-            index = nOfferings + 1;
-            obj.offerings{index} = offering;
         end
         
         function plugInSlots(obj)
