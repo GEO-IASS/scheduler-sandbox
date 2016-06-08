@@ -1,7 +1,6 @@
 classdef SsSlotContext < handle
     % Hold simulation objects, wire them together.  Distribute them?
     
-    % TODO: factor out code for visiting objects that have slots?
     % TODO: compute big matrix of scores for all offerings and slots, once,
     % instead of repeating nested loops in various methods.
     
@@ -36,6 +35,7 @@ classdef SsSlotContext < handle
             end
         end
         
+        % for each slot, find the best offering(s), if any
         function plugInSlots(obj)
             % Do all autocreating before making any offerings,
             % that way order of offering won't matter.
@@ -169,21 +169,27 @@ classdef SsSlotContext < handle
                     end
                     bestOffering = obj.offerings{bestIndex};
                     
-                    % best offering to target property
-                    isAssigned = target.assignProperty(slot.assignmentTarget, bestOffering);
-                    
-                    % best or all offerings to target method
-                    if slot.isTakeAll
-                        isInvoked = false;
-                        for ff = find(scores > 0)
-                            offering = obj.offerings{ff};
-                            isInvoked = isInvoked | target.invokeMethod(slot.invocationTarget, offering);
+                    isAccepted = false;
+                    if ~isempty(slot.invocationTarget)
+                        if slot.isTakeAll
+                            % all offerings to target method
+                            isAccepted = false;
+                            for ff = find(scores > 0)
+                                offering = obj.offerings{ff};
+                                isAccepted = isAccepted | ...
+                                    target.invokeMethod(slot.invocationTarget, offering, slot);
+                            end
+                        else
+                            % best offering to target method
+                            isAccepted = target.invokeMethod(slot.invocationTarget, bestOffering, slot);
                         end
-                    else
-                        isInvoked = target.invokeMethod(slot.invocationTarget, bestOffering);
+                        
+                    elseif ~isempty(slot.assignmentTarget)
+                        % best offering to target property
+                        isAccepted = target.assignProperty(slot.assignmentTarget, bestOffering);
                     end
                     
-                    if ~isAssigned && ~isInvoked
+                    if ~isAccepted
                         warning('SlotContext:unusedSlot', ...
                             'Slot Target "%s" has no property "%s" or method "%s".', ...
                             class(target), slot.assignmentTarget, slot.invocationTarget);

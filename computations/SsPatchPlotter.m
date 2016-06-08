@@ -16,25 +16,28 @@ classdef SsPatchPlotter < SsComputation & SsSlotTarget
     methods
         function obj = SsPatchPlotter(varargin)
             parser = SsInputParser();
+            parser.addParameter('name', '', @ischar);
             parser.addParameter('title', 'patch', @ischar);
             parser.parseMagically(obj, varargin{:});
         end
         
         function slots = declareSlots(obj)
             slots(1) = SsSlot() ...
+                .passTo('connectInputStream', 'passSlot', true) ...
                 .assignAs('gazePatch') ...
                 .requireClass('SsStream') ...
                 .preferProperty('name', 'value', 'gazePatch');
         end
         
-        function afterSlotAssignments(obj, slots)
-            obj.initialize();
-        end
-        
         function initialize(obj)
             % plot the scene image as background
-            obj.fig = figure('Name', obj.title);
-            obj.ax = axes('Parent', obj.fig);
+            if isempty(obj.fig) || ~ishghandle(obj.fig)
+                obj.fig = figure('Name', obj.title);
+            end
+            
+            if isempty(obj.ax) || ~ishghandle(obj.ax)
+                obj.ax = axes('Parent', obj.fig);
+            end
         end
         
         function [nextTime, independenceTime] = update(obj, currentTime, previousTime)

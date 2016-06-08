@@ -16,11 +16,6 @@ classdef SsStream < handle
             parser.parseMagically(obj, varargin{:});
         end
         
-        function oldValue = setInput(obj, input)
-            oldValue = obj.input;
-            obj.input = input;
-        end
-        
         function putSample(obj, value, time)
             sample = SsStream.makeSample(value, time);
             if isempty(obj.sampleHistory)

@@ -182,6 +182,8 @@ classdef SsDataGrapher < handle
             nodeStrings = cell(1, nNodes);
             for ii = 1:nNodes
                 node = self.nodes(ii);
+                nodeColor = self.composeRGB(node.color, 1);
+                whiteColor = self.composeRGB([1 1 1], 1);
                 
                 % skip nameless nodes
                 if isempty(node.label)
@@ -190,7 +192,8 @@ classdef SsDataGrapher < handle
                 
                 if self.listedEdgeNames
                     % make an HTML-like table
-                    tableStart = '<table border="0" cellborder="1" cellspacing="0">';
+                    tableStart = sprintf('<table bgcolor="%s" border="3" cellborder="0" cellspacing="3">', ...
+                        whiteColor);
                     tableRows = sprintf('<tr><td><b>%s</b></td></tr>', node.label);
                     for jj = 1:length(node.edges)
                         edge = node.edges(jj);
@@ -198,8 +201,9 @@ classdef SsDataGrapher < handle
                         if isempty(targetNode.label)
                             continue
                         end
-                        row = sprintf('<tr><td port="%d">%s</td></tr>', ...
-                            jj, edge.name);
+                        targetColor = self.composeRGB(targetNode.color, 1);
+                        row = sprintf('<tr><td port="%d" bgcolor="%s">%s</td></tr>', ...
+                            jj, targetColor, edge.name);
                         tableRows = [tableRows row];
                     end
                     tableEnd = '</table>';
@@ -209,7 +213,6 @@ classdef SsDataGrapher < handle
                     nodeLabel = sprintf('"%s"', node.label);
                 end
                 
-                nodeColor = self.composeRGB(node.color, 1);
                 nodeStrings{ii} = sprintf('%s [label=%s color="%s"]', ...
                     node.nodeName, nodeLabel, nodeColor);
             end

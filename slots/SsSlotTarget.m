@@ -12,20 +12,26 @@ classdef SsSlotTarget < handle
             % default is no-op, subclasses may override
         end
         
-        % check an offering, maybe assign or pass to method
+        % for one offering, find the best slot(s), if any
         function isAccepted = offer(obj, offering, varargin)
             parser = SsInputParser();
             parser.addRequired('offering');
-            parser.addParameter('firstOnly', true, @islogical);
+            parser.addParameter('takeAll', false, @islogical);
             parser.addParameter('assignmentTarget', '', @ischar);
             parser.addParameter('invocationTarget', '', @ischar);
             parser.parseMagically('caller', offering, varargin{:});
             
             isAccepted = false;
             
-            % try to assign at each slot
+            % evaluate each slot as a candidate to take the offering
             slots = obj.declareSlots();
             nSlots = numel(slots);
+            if nSlots < 1
+                warning('SlotTarget:noSlots', 'Slot Target declares no Slots.');
+                return;
+            end
+            
+            scores = zeros(1, nSlots);
             for ss = 1:nSlots
                 slot = slots(ss);
                 
@@ -40,20 +46,41 @@ classdef SsSlotTarget < handle
                 end
                 
                 % rate the offering
-                score = slot.evaluateOffering(offering);
-                if score <= 0
-                    continue;
+                [scores(ss), message] = slot.evaluateOffering(offering);
+            end
+            
+            % choose the best slot(s) to take the offering
+            [bestScore, bestIndex] = max(scores);
+            if bestScore <= 0
+                warning('SlotTarget:unmatchedOffering', 'Offering not plugged in: %s', message);
+                return;
+            end
+            bestSlot = slots(bestIndex);
+            
+            isAccepted = false;
+            if ~isempty(bestSlot.invocationTarget)
+                if takeAll
+                    % offering to all slots's methods
+                    isAccepted = false;
+                    for ss = find(scores > 0)
+                        slot = slots(ss);
+                        isAccepted = isAccepted | ...
+                            obj.invokeMethod(slot.invocationTarget, offering, slot);
+                    end
+                else
+                    % offering to best slot's method
+                    isAccepted = obj.invokeMethod(bestSlot.invocationTarget, offering, bestSlot);
                 end
                 
-                % try to take the offering
-                isAssigned = obj.assignProperty(slot.assignmentTarget, offering);
-                isInvoked = obj.invokeMethod(slot.invocationTarget, offering);
-                isAccepted = isAssigned || isInvoked;
-                
-                % stop after the first accepted offering?
-                if isAccepted && firstOnly
-                    return;
-                end
+            elseif ~isempty(bestSlot.assignmentTarget)
+                % offering to best slot's property
+                isAccepted = obj.assignProperty(bestSlot.assignmentTarget, offering);
+            end
+            
+            if ~isAccepted
+                warning('SlotTarget:unusedOffering', ...
+                    'Slot Target "%s" has no property "%s" or method "%s".', ...
+                    class(obj), bestSlot.assignmentTarget, bestSlot.invocationTarget);
             end
         end
         
@@ -64,7 +91,7 @@ classdef SsSlotTarget < handle
                 return;
             end
             
-            % don't clobber pervious assignment
+            % don't clobber previous assignment
             if ~isempty(obj.(propertyName))
                 isAssigned = true;
                 return;
@@ -76,14 +103,17 @@ classdef SsSlotTarget < handle
         end
         
         % pass an offering to a method
-        function isInvoked = invokeMethod(obj, methodName, offering)
+        function isInvoked = invokeMethod(obj, methodName, offering, slot)
             if ~ischar(methodName) || ~ismethod(obj, methodName)
                 isInvoked = false;
                 return;
             end
             
-            % go ahead
-            feval(methodName, obj, offering);
+            if slot.passSlot
+                feval(methodName, obj, offering, slot);
+            else
+                feval(methodName, obj, offering, slot.invocationArgs{:});
+            end
             isInvoked = true;
         end
     end

@@ -13,6 +13,7 @@ classdef SsGaborPatch < SsImage
     methods
         function obj = SsGaborPatch(varargin)
             parser = SsInputParser();
+            parser.addParameter('name', '', @ischar);
             parser.addParameter('frequency', 1, @isnumeric);
             parser.addParameter('orientation', 0, @isnumeric);
             parser.addParameter('phase', 0, @isnumeric);

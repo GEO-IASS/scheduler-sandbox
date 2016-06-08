@@ -13,22 +13,25 @@ clc
 
 %% Some entities.
 
-% use Gabor patch to interpolate between two spectra
+% use Gabor patch as spatial pattern
 gabor = SsGaborPatch( ...
+    'name', 'gabor', ...
     'phase', 0, ...
     'stddev', 2, ...
     'frequency', 0.5, ...
     'orientation', pi()/12, ...
     'gain', 0.75);
 
-% use 3-plane spectra so we can view them as rgb
+% define endpoints of color modulation
 spectralGabor = SsTwoSpectrumImage( ...
+    'name', 'spectralGabor', ...
     'lowSpectrum', SsSpectrum(1:3, 'magnitudes', [1 0 0]), ...
     'highSpectrum', SsSpectrum(1:3, 'magnitudes', [0 0 1]));
 spectralGabor.offer(gabor);
 
-% plug the interpolated reflectance into a flat scene with pixels
+% plug the spatio-chromatic modulation into a flat scene with pixels
 scene = SsPlanarScene( ...
+    'name', 'scene', ...
     'illuminant', SsSpectrum(1:3, 'magnitudes', [.5 .5 .5]), ...
     'width', 10, ...
     'height', 10, ...
@@ -40,35 +43,40 @@ scene.offer(spectralGabor);
 
 % how will we view the scene?
 pov = SsPointOfView( ...
+    'name', 'pov', ...
     'fieldOfView', pi()/6, ...
     'distance', 1);
 
 %% A point of gaze computation and its output streams.
+
+% SsRandomGazePicker provides 3 outputs:
+%   "gazeTarget" is a point in the scene, we move gaze towards it
+%   "gazeBox" is our current gaze region
+%   "gazePatch" is the pixel image within the gaze box
 gazePicker = SsRandomGazePicker( ...
+    'name', 'gazePicker', ...
     'speed', 3, ...
     'targetChangeInteval', 1);
-gazePatch = SsStream();
-gazeTarget = SsStream();
-gazeBox = SsStream();
-
-gazePatch.input = gazePicker;
-gazeTarget.input = gazePicker;
-gazeBox.input = gazePicker;
-
 gazePicker.offer(scene);
 gazePicker.offer(pov);
-gazePicker.offer(gazePatch, 'assignmentTarget', 'gazePatch');
-gazePicker.offer(gazeTarget, 'assignmentTarget', 'gazeTarget');
-gazePicker.offer(gazeBox, 'assignmentTarget', 'gazeBox');
 
+% attach an output stream for each output
+gazeTarget = SsStream('name', 'gazeTarget');
+gazePicker.offer(gazeTarget);
 
-%% Downstream computations for plotting.
-gazePlotter = SsGazePlotter();
+gazeBox = SsStream('name', 'gazeBox');
+gazePicker.offer(gazeBox);
+
+gazePatch = SsStream('name', 'gazePatch');
+gazePicker.offer(gazePatch);
+
+%% Downstream computation for plotting.
+gazePlotter = SsGazePlotter('name', 'gazePlotter');
 gazePlotter.offer(scene);
-gazePlotter.offer(gazeTarget, 'assignmentTarget', 'gazeTarget');
-gazePlotter.offer(gazeBox, 'assignmentTarget', 'gazeBox');
+gazePlotter.offer(gazeTarget);
+gazePlotter.offer(gazeBox);
 
-%% Scheduler to wangle computation updates.
+%% Scheduler to wrangle computation updates.
 scheduler = SsTicTocScheduler();
 scheduler.add(gazePicker);
 scheduler.add(gazePlotter);
@@ -77,21 +85,3 @@ scheduler.add(gazePlotter);
 scheduler.initialize();
 scheduler.initializeComputations();
 scheduler.run(5);
-
-%% Make a plot of our "wiring".
-
-% put all our objects in one container
-context = SsSlotContext();
-context.add(gabor);
-context.add(spectralGabor);
-context.add(scene);
-context.add(pov);
-context.add(gazePicker);
-context.add(gazePatch);
-context.add(gazeTarget);
-context.add(gazeBox);
-context.add(gazePlotter);
-context.add(scheduler);
-
-% let the container draw a diagram
-ssPlotSlots(context);

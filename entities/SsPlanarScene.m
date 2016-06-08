@@ -17,6 +17,7 @@ classdef SsPlanarScene < SsImage & SsSlotTarget
     methods
         function obj = SsPlanarScene(varargin)
             parser = SsInputParser();
+            parser.addParameter('name', '', @ischar);
             parser.addParameter('width', 1, @isnumeric);
             parser.addParameter('height', 1, @isnumeric);
             parser.addParameter('horizontalOffset', 0, @isnumeric);

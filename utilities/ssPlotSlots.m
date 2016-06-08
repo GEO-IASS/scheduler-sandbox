@@ -32,11 +32,11 @@ for oo = 1:nOfferings
     
     % choose the node color
     if isa(offering, 'SsEntity')
-        color = [.5 1 .5];
+        color = [.7 .9 .7];
     elseif isa(offering, 'SsComputation')
-        color = [.5 .5 1];
+        color = [.6 .6 .8];
     elseif isa(offering, 'SsStream')
-        color = [1 1 .0];
+        color = [.9 .9 .3];
     else
         color = 0.5 * [1 1 1];
     end
@@ -53,11 +53,14 @@ grapher.graphVisAlgorithm = 'dot';
 grapher.edgeColorFromTarget = true;
 grapher.edgeFunction = @edgesFromSlots;
 grapher.graphIsDirected = true;
-grapher.listedEdgeNames = true;
 
-grapher.graphProperties.overlap= 'prism';
+%grapher.nodeProperties.shape = 'box';
+%grapher.nodeProperties.style = 'filled';
+
+grapher.graphProperties.outputorder = 'edgesfirst';
+grapher.graphProperties.overlap = 'prism';
 grapher.graphProperties.splines = false;
-grapher.graphProperties.rankdir = 'LR';
+grapher.graphProperties.rankdir = 'BT';
 
 %% Draw the graph!
 figure()
@@ -79,9 +82,8 @@ end
 slotContext = dataElement.context;
 slots = offering.declareSlots();
 nSlots = numel(slots);
-edgeIndexes = zeros(1, nSlots);
-edgeNames = cell(1, nSlots);
-isEdge = false(1, nSlots);
+edgeIndexes = [];
+edgeNames = {};
 for ss = 1:nSlots
     slot = slots(ss);
     if isempty(slot.assignmentTarget)
@@ -92,15 +94,23 @@ for ss = 1:nSlots
         continue;
     end
     
-    target = offering.(slot.assignmentTarget);
-    targetIndex = slotContext.indexOf(target);
-    if isempty(targetIndex)
-        continue;
+    targets = offering.(slot.assignmentTarget);
+    for tt = 1:numel(targets)
+        if iscell(targets)
+            target = targets{tt};
+        else
+            target = targets(tt);
+        end
+        targetIndex = slotContext.indexOf(target);
+        if isempty(targetIndex)
+            continue;
+        end
+        edgeIndexes(end + 1) = targetIndex; %#ok<AGROW>
+        edgeNames{end + 1} = slot.assignmentTarget; %#ok<AGROW>
     end
-    
-    edgeIndexes(ss) = targetIndex;
-    edgeNames{ss} = slot.assignmentTarget;
-    isEdge(ss) = true;
 end
-edgeIndexes = edgeIndexes(isEdge);
-edgeNames = edgeNames(isEdge);
+
+% sort by target index to avoid edge crossings (I hope...)
+[edgeIndexes, order] = sort(edgeIndexes);
+edgeNames = edgeNames(order);
+

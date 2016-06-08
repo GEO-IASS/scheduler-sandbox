@@ -4,6 +4,8 @@ classdef SsSlot < handle
     properties
         assignmentTarget;
         invocationTarget;
+        invocationArgs = {};
+        passSlot = false;
         requiredClass;
         requiredProperties;
         preferredProperties;
@@ -18,10 +20,12 @@ classdef SsSlot < handle
             parser.parseMagically(obj, assignmentTarget);
         end
         
-        function obj = passTo(obj, invocationTarget)
+        function obj = passTo(obj, invocationTarget, varargin)
             parser = SsInputParser();
             parser.addRequired('invocationTarget', @ischar);
-            parser.parseMagically(obj, invocationTarget);
+            parser.addParameter('invocationArgs', {}, @iscell);
+            parser.addParameter('passSlot', false, @islogical);
+            parser.parseMagically(obj, invocationTarget, varargin{:});
         end
         
         function obj = requireClass(obj, requiredClass)

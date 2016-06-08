@@ -15,6 +15,7 @@ classdef SsTwoSpectrumImage < SsImage & SsSlotTarget
     methods
         function obj = SsTwoSpectrumImage(varargin)
             parser = SsInputParser();
+            parser.addParameter('name', '', @ischar);
             parser.addParameter('low', -1, @isnumeric);
             parser.addParameter('high', 1, @isnumeric);
             parser.addParameter('lowSpectrum', SsSpectrum(400:10:700, 'magnitudes', zeros(1, 31)), @(s) isa(s, 'SsSpectrum'));

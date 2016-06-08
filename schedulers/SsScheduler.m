@@ -17,12 +17,9 @@ classdef SsScheduler < SsSlotTarget
         function slots = declareSlots(obj)
             slots(1) = SsSlot() ...
                 .passTo('add') ...
+                .assignAs('computations') ...
                 .requireClass('SsComputation') ...
                 .takeAll(true);
-        end
-        
-        function afterSlotAssignments(obj, slots)
-            obj.initialize();
         end
         
         function initialize(obj)
