@@ -32,7 +32,9 @@ classdef SsPatchPlotter < SsComputation & SsSlotTarget
         function initialize(obj)
             % plot the scene image as background
             if isempty(obj.fig) || ~ishghandle(obj.fig)
-                obj.fig = figure('Name', obj.title);
+                obj.fig = figure('Name', obj.title, ...
+                    'Units', 'normalized', ...
+                    'Position', [0.7 0.6 0.2 0.2]);
             end
             
             if isempty(obj.ax) || ~ishghandle(obj.ax)

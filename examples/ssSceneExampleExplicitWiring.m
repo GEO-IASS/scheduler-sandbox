@@ -3,7 +3,7 @@
 % This is a proof of concept.  I want to build up a "scene", which is a
 % multi-spectral radiance image defined across a planar region.
 %
-% For this example, I'll assign objects to slots explicitly.  The slots
+% For this example, I'll assign objects to slots explicitly.  Each slot
 % will check if the objet I'm offering is a good match for the slot.
 %
 % 2016 isetbio team
@@ -45,7 +45,7 @@ scene.offer(spectralGabor);
 pov = SsPointOfView( ...
     'name', 'pov', ...
     'fieldOfView', pi()/6, ...
-    'distance', 1);
+    'distance', 2);
 
 %% A point of gaze computation and its output streams.
 
